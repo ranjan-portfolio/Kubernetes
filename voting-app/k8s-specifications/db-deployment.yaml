@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: db-blue
+  name: db-blue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db-blue
+  template:
+    metadata:
+      labels:
+        app: db-blue
+    spec:
+      containers:
+      - image: postgres:15-alpine
+        name: postgres
+        env:
+        - name: POSTGRES_USER
+          value: postgres
+        - name: POSTGRES_PASSWORD
+          value: postgres
+        ports:
+        - containerPort: 5432
+          name: postgres
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: db-data
+      volumes:
+      - name: db-data
+        emptyDir: {} 
+      tolerations:
+      - key: "environment"
+        operator: "Equal"
+        value: "blue"
+        effect: "NoSchedule"  
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100        # Added mandatory weight
+              preference:
+               matchExpressions:
+                - key: environment
+                  operator: In
+                  values:
+                    - blue  

@@ -1,0 +1,51 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  labels:
+    app: vote
+  name: vote
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vote
+  template:
+    metadata:
+      labels:
+        app: vote
+    spec:
+      containers:
+      - image: dockersamples/examplevotingapp_vote
+        name: vote
+        ports:
+        - containerPort: 80
+          name: vote
+        envFrom:
+         - configMapRef:
+              name: vote-config  
+  strategy:
+    canary:
+      stableService: vote-stable
+      canaryService: vote-canary
+      trafficRouting:
+        nginx:
+          stableIngress: vote-ingress
+      steps:
+      
+      - setWeight: 20
+      # The following pause step will pause the rollout indefinitely until manually resumed.
+      # Rollouts can be manually resumed by running `kubectl argo rollouts promote ROLLOUT`
+      - pause: {duration: 1m}
+      - analysis:
+          templates:
+          - templateName: success-rate
+          args:
+          - name: service-name
+            value: vote-canary
+      - setWeight: 40
+      - pause: {duration: 40s}
+      - setWeight: 60
+      - pause: {duration: 20s}
+      - setWeight: 80
+      - pause: {duration: 20s} 
+      

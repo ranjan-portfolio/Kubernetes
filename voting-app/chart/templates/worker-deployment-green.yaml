@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: worker-green
+    environment: "green"
+  name: worker-green
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: worker-green
+      environment: "green"
+  template:
+    metadata:
+      labels:
+        app: worker-green
+        environment: "green"
+    spec:
+      containers:
+      - image: azureciregistry.azurecr.io/votingapp/worker:56
+        name: worker-blue
+        livenessProbe:
+          exec:
+            command:
+            - pgrep
+            - dotnet
+          initialDelaySeconds: 10
+          periodSeconds: 30  
+      tolerations:
+      - key: "environment"
+        operator: "Equal"
+        value: "green"
+        effect: "NoSchedule"
+      affinity:
+       nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+         nodeSelectorTerms:
+         - matchExpressions:
+           - key: environment
+             operator: In
+             values: 
+              - green
+      resources:
+          requests:
+            cpu: "100m"      # 0.05 cores
+            memory: "128Mi"
+          limits:
+            cpu: "200m"     # 0.1 cores
+            memory: "256Mi"        

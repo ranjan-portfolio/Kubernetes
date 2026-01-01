@@ -1,0 +1,66 @@
+# Docker
+# Build and push an image to Azure Container Registry
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+ paths:
+   include:
+     - result/*
+
+pool:
+ name: azurecicdagentpool
+
+resources:
+- repo: self
+
+variables:
+  # Container registry service connection established during pipeline creation
+  dockerRegistryServiceConnection: '46c817fb-ae96-4c25-8acd-1b5926d565bc'
+  imageRepository: 'votingapp/result'
+  containerRegistry: 'azureciregistry.azurecr.io'
+  dockerfilePath: '$(Build.SourcesDirectory)/result/Dockerfile'
+  tag: '$(Build.BuildId)'
+
+  # Agent VM image name
+  vmImageName: 'ubuntu-latest'
+
+  
+
+stages:
+- stage: Build
+  displayName: Build
+  jobs:
+  - job: Build
+    displayName: Build
+    steps:
+    - task: Docker@2
+      displayName: Build image
+      inputs:
+        containerRegistry: '$(dockerRegistryServiceConnection)'
+        repository: '$(imageRepository)'
+        command: 'build'
+        Dockerfile: '$(dockerfilePath)'
+        tags: '$(tag)'
+- stage: Push
+  displayName: Push
+  jobs:
+  - job: Push
+    displayName: Push image to registry
+    steps:
+    - task: Docker@2
+      displayName: Push image to registry
+      inputs:
+        containerRegistry: '$(dockerRegistryServiceConnection)'
+        repository: '$(imageRepository)'
+        command: 'push'
+        tags: '$(tag)'
+- stage: Update
+  displayName: Update
+  jobs:
+  - job: Update
+    displayName: Update K8s manifest file to trigger deployment
+    steps:
+      - task: ShellScript@2
+        inputs:
+          scriptPath: 'scripts/k8smanifestupdate.sh'
+          args: 'result $(imageRepository) $(tag)'

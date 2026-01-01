@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: redis-blue
+  name: redis-blue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-blue
+  template:
+    metadata:
+      labels:
+        app: redis-blue
+    spec:
+      containers:
+      - image: redis:alpine
+        name: redis-blue
+        ports:
+        - containerPort: 6379
+          name: redis-blue
+        volumeMounts:
+        - mountPath: /data
+          name: redis-data
+      volumes:
+      - name: redis-data
+        emptyDir: {} 
+      tolerations:
+      - key: "environment"
+        operator: "Equal"
+        value: "blue"
+        effect: "NoSchedule"  
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100        # Added mandatory weight
+              preference:
+               matchExpressions:
+                - key: environment
+                  operator: In
+                  values:
+                    - blue
+      resources:
+          requests:
+            cpu: "100m"      # 0.05 cores
+            memory: "128Mi"
+          limits:
+            cpu: "200m"     # 0.1 cores
+            memory: "256Mi"                

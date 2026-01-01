@@ -1,0 +1,56 @@
+ingress-nginx:
+  controller:
+    podAnnotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "10254"
+      prometheus.io/path: "/metrics"
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: false # set true if using Prometheus Operator
+    extraArgs:
+      enable-metrics: "true"
+    config:
+      metrics-per-ingress: "true"
+      metrics-per-host: "true"
+
+prometheus:
+  server:
+    service:
+      type: ClusterIP
+  alertmanager:
+    enabled: false
+  pushgateway:
+    enabled: false
+
+grafana:
+  # values.yaml - Demo setup for Grafana
+
+  adminUser: admin
+  adminPassword: changeme
+
+  service:
+    type: ClusterIP
+    port: 3000
+
+  persistence:
+    enabled: false
+
+  # Datasources - connect to Prometheus in the same cluster
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus-server.monitoring.svc.cluster.local
+        isDefault: true
+
+  # Optional: enable sidecar to automatically pick up dashboards from ConfigMaps
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+    datasources:
+      enabled: true

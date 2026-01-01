@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: worker-blue
+    environment: "blue"
+  name: worker-blue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: worker-blue
+      environment: "blue"
+  template:
+    metadata:
+      labels:
+        app: worker-blue
+        environment: "blue"
+    spec:
+      containers:
+      - image: azureciregistry.azurecr.io/votingapp/worker:56
+        name: worker-blue
+        livenessProbe:
+          exec:
+            command:
+            - pgrep
+            - dotnet
+          initialDelaySeconds: 10
+          periodSeconds: 30
+      tolerations:
+      - key: "environment"
+        operator: "Equal"
+        value: "blue"
+        effect: "NoSchedule"
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: environment
+                operator: In
+                values: 
+                 - blue
+      resources:
+          requests:
+            cpu: "100m"      # 0.05 cores
+            memory: "128Mi"
+          limits:
+            cpu: "200m"     # 0.1 cores
+            memory: "256Mi"           

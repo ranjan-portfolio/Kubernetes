@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: result-green
+    environment: green
+  name: result-green
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: result-green
+      environment: green
+  template:
+    metadata:
+      labels:
+        app: result-green
+        environment: green
+    spec:
+      containers:
+      - image: azureciregistry.azurecr.io/votingapp/result:55
+        name: result
+        ports:
+        - containerPort: 80
+          name: result
+        startupProbe:
+          httpGet:
+            path: /
+            port: 80
+          failureThreshold: 6
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          periodSeconds: 30    
+      tolerations:
+        - key: "environment"
+          operator: "Equal"
+          value: "green"
+          effect: "NoSchedule"
+      affinity:
+        nodeAffinity:
+         requiredDuringSchedulingIgnoredDuringExecution:
+           nodeSelectorTerms:
+             - matchExpressions:
+               - key: environment
+                 operator: In
+                 values:  
+                   - green
+      resources:
+          requests:
+            cpu: "100m"      # 0.05 cores
+            memory: "128Mi"
+          limits:
+            cpu: "200m"     # 0.1 cores
+            memory: "256Mi"                  

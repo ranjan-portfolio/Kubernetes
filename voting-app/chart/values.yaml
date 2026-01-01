@@ -1,0 +1,3 @@
+replicaCount: 1
+envName1: green
+envName2: blue

@@ -1,0 +1,33 @@
+apiVersion: v2
+name: voting-app
+description: A Helm chart for the Polyglot Voting Application with Canary Rollouts
+type: application
+
+# The chart version (increments when you change the Helm configuration)
+version: 1.0.0
+
+# The application version (increments when you update the actual Vote/Result code)
+appVersion: "42.0.0"
+
+maintainers:
+- name: Ranjanabha
+  email: ranjanabha@tcs.com
+
+# In 2025, we use dependencies to pull in stable community charts
+dependencies:
+- name: prometheus
+  version: "27.52.0" # Use the current stable version for 2025
+  repository: "https://prometheus-community.github.io/helm-charts"
+  # Optional: Use a condition to toggle it on/off in values.yaml
+  condition: prometheus.enabled
+- name: grafana
+  version: "10.4.0" # Current stable major version for late 2025
+  repository: "https://grafana.github.io/helm-charts"
+
+- name: ingress-nginx
+  version: "4.14.1" # specify the chart version
+  repository: "https://kubernetes.github.io/ingress-nginx"
+
+annotations:
+  category: Infrastructure
+  display-name: Voting App

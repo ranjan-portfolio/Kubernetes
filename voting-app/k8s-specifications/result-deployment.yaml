@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: result-blue
+    environment: blue
+  name: result-blue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: result-blue
+      environment: blue
+  template:
+    metadata:
+      labels:
+        app: result-blue
+        environment: blue
+    spec:
+      containers:
+      - image: azureciregistry.azurecr.io/votingapp/result:55
+        name: result
+        ports:
+        - containerPort: 80
+          name: result-blue
+      tolerations:
+      - key: "environment"
+        operator: "Equal"
+        value: "blue"
+        effect: "NoSchedule"
+      affinity:
+       nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+           - key: environment
+             operator: In
+             values: 
+             - blue
+      resources:
+          requests:
+            cpu: "100m"      # 0.05 cores
+            memory: "128Mi"
+          limits:
+            cpu: "200m"     # 0.1 cores
+            memory: "256Mi"        

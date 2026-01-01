@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: success-rate
+spec:
+  args:
+    - name: service-name
+  metrics:
+    - name: success-rate
+      # How often to check the metric
+      interval: 1m
+      count: 3  
+      # How many times it can fail before aborting the rollout
+      failureLimit: 3
+      # The condition that must be true for the check to pass
+      successCondition: "{{ `len(result)>0 && result[0] >= 0.95` }}" 
+      provider:
+        prometheus:
+          # Replace with your actual Prometheus service address
+          address: http://voting-app-prometheus-server.default.svc.cluster.local
+          query: |
+            sum(irate(nginx_ingress_controller_requests{reporter="source",destination_service=~"{{`{{args.service-name}}`}}",response_code!~"5.*"}[2m])) 
+            / 
+            sum(irate(nginx_ingress_controller_requests{reporter="source",destination_service=~"{{`{{args.service-name}}`}}"}[2m]))
