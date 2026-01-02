@@ -1,18 +1,26 @@
-ingress-nginx:
-  controller:
-    podAnnotations:
-      prometheus.io/scrape: "true"
-      prometheus.io/port: "10254"
-      prometheus.io/path: "/metrics"
-    metrics:
-      enabled: true
-      serviceMonitor:
-        enabled: false # set true if using Prometheus Operator
-    extraArgs:
-      enable-metrics: "true"
-    config:
-      metrics-per-ingress: "true"
-      metrics-per-host: "true"
+controller:
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "10254"
+    prometheus.io/path: "/metrics"
+
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: false # set true if using Prometheus Operator
+
+  extraArgs:
+    enable-metrics: "true"
+
+  config:
+    metrics-per-ingress: "true"
+    metrics-per-host: "true"
+
+  service:
+    type: LoadBalancer
+    annotations:
+      service.beta.kubernetes.io/azure-load-balancer-health-probe-protocol: tcp
+      service.beta.kubernetes.io/azure-load-balancer-force-reconcile: "true"
 
 prometheus:
   server:

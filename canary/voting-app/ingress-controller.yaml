@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    meta.helm.sh/release-name: canary
+    meta.helm.sh/release-namespace: default
+  creationTimestamp: "2026-01-01T20:32:27Z"
+  finalizers:
+  - service.kubernetes.io/load-balancer-cleanup
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: canary
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.14.1
+    helm.sh/chart: ingress-nginx-4.14.1
+  name: canary-ingress-nginx-controller
+  namespace: default
+  resourceVersion: "23439"
+  uid: c19b53bb-6485-49b3-b871-b0a0ba4255df
+spec:
+  allocateLoadBalancerNodePorts: true
+  clusterIP: 10.0.219.186
+  clusterIPs:
+  - 10.0.219.186
+  externalTrafficPolicy: Cluster
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - appProtocol: http
+    name: http
+    nodePort: 31303
+    port: 80
+    protocol: TCP
+    targetPort: http
+  - appProtocol: https
+    name: https
+    nodePort: 32306
+    port: 443
+    protocol: TCP
+    targetPort: https
+  selector:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: canary
+    app.kubernetes.io/name: ingress-nginx
+  sessionAffinity: None
+  type: LoadBalancer
+status:
+  loadBalancer:
+    ingress:
+    - ip: 172.179.173.113
+      ipMode: VIP
