@@ -21,8 +21,8 @@ spec:
         - containerPort: 80
           name: vote
         envFrom:
-         - configMapRef:
-              name: vote-config  
+        - configMapRef:
+            name: vote-config  
   strategy:
     canary:
       stableService: vote-stable

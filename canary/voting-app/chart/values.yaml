@@ -1,41 +1,93 @@
-controller:
-  podAnnotations:
-    prometheus.io/scrape: "true"
-    prometheus.io/port: "10254"
-    prometheus.io/path: "/metrics"
+ingress-nginx:
+  controller:
+    metrics:
+      enabled: true
+      service:
+        enabled: true
+        type: ClusterIP
+        ports:
+          metrics: 10254
+        annotations:
+          prometheus.io/scrape: "true"
+          prometheus.io/port: "10254"
+          prometheus.io/path: "/metrics"
 
-  metrics:
-    enabled: true
-    serviceMonitor:
-      enabled: false # set true if using Prometheus Operator
+    config:
+      metrics-per-ingress: "true"
+      metrics-per-host: "true"
 
-  extraArgs:
-    enable-metrics: "true"
-
-  config:
-    metrics-per-ingress: "true"
-    metrics-per-host: "true"
-
-  service:
-    type: LoadBalancer
-    annotations:
-      service.beta.kubernetes.io/azure-load-balancer-health-probe-protocol: tcp
-      service.beta.kubernetes.io/azure-load-balancer-force-reconcile: "true"
+    service:
+      type: LoadBalancer
+      annotations:
+        service.beta.kubernetes.io/azure-load-balancer-health-probe-protocol: tcp
+        service.beta.kubernetes.io/azure-load-balancer-force-reconcile: "true"
 
 prometheus:
   server:
     service:
       type: ClusterIP
+
+    extraScrapeConfigs:
+    - job_name: ingress-nginx
+      kubernetes_sd_configs:
+      - role: endpoints
+      relabel_configs:
+      - source_labels: [ __meta_kubernetes_service_name ]
+        action: keep
+        regex: ingress-nginx-controller-metrics
+      - source_labels: [ __meta_kubernetes_endpoint_port_name ]
+        action: keep
+        regex: metrics
+
   alertmanager:
     enabled: false
+
   pushgateway:
     enabled: false
 
 grafana:
-  # values.yaml - Demo setup for Grafana
-
   adminUser: admin
   adminPassword: changeme
+
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+      - name: default
+        orgId: 1
+        folder: Kubernetes
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/default
+
+  dashboards:
+    default:
+      kubernetes-cluster:
+        gnetId: 315
+        revision: 3
+        datasource: Prometheus
+
+      node-exporter-full:
+        gnetId: 1860
+        revision: 33
+        datasource: Prometheus
+
+      kubernetes-pods:
+        gnetId: 893
+        revision: 1
+        datasource: Prometheus
+
+      kubernetes-deployments:
+        gnetId: 747
+        revision: 1
+        datasource: Prometheus
+
+      ingress-nginx:
+        gnetId: 12121
+        revision: 1
+        datasource: Prometheus
 
   service:
     type: ClusterIP
@@ -44,7 +96,6 @@ grafana:
   persistence:
     enabled: false
 
-  # Datasources - connect to Prometheus in the same cluster
   datasources:
     datasources.yaml:
       apiVersion: 1
@@ -52,10 +103,9 @@ grafana:
       - name: Prometheus
         type: prometheus
         access: proxy
-        url: http://prometheus-server.monitoring.svc.cluster.local
+        url: http://canary-prometheus-server.default.svc.cluster.local
         isDefault: true
 
-  # Optional: enable sidecar to automatically pick up dashboards from ConfigMaps
   sidecar:
     dashboards:
       enabled: true
