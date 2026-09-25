@@ -15,4 +15,8 @@ spec:
   paths:
     - gitops-fleet-demo/platform/prometheus
     - gitops-fleet-demo/app/vote-app
-  pollingInterval: 15s 
+  targets:
+    - name: dev
+      clusterSelector:
+        matchLabels:
+          environment: dev
