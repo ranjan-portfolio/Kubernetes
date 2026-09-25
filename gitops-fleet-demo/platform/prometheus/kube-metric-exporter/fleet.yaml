@@ -1,0 +1,10 @@
+name: prometheus-kubestate-exporter
+defaultNamespace: monitoring
+helm:
+  repo: https://prometheus-community.github.io/helm-charts
+  chart: kube-state-metrics
+  version: 8.5.0
+  releaseName: kube-state-metrics
+  values:
+    # any values.yaml overrides go here, e.g.:
+    replicaCount: 1

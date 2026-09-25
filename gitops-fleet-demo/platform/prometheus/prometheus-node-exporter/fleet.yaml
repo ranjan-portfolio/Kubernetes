@@ -1,0 +1,10 @@
+name: prometheus-node-exporter
+defaultNamespace: monitoring
+helm:
+  repo: https://prometheus-community.github.io/helm-charts
+  chart: prometheus-node-exporter
+  version: 4.57.0
+  releaseName: node-exporter
+  values:
+    # any values.yaml overrides go here, e.g.:
+    replicaCount: 1

@@ -1,0 +1,4 @@
+name: prometheus-instance
+defaultNamespace: monitoring
+dependsOn:
+  - name: prometheus-operator
